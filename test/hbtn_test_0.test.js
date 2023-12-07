@@ -21,33 +21,32 @@ describe('GET /users', () => {
         return new Promise((resolve) => {
             MongoClient.connect(`mongodb://${dbInfo.host}:${dbInfo.port}/${dbInfo.database}`, async (err, client) => {
                 testClientDb = client.db(dbInfo.database);
-
+            
                 await testClientDb.collection('users').deleteMany({})
 
                 resolve();
-            });
+            }); 
         });
     });
-
+        
     afterEach(() => {
     });
 
     it('GET /users creates a new user in DB (when pass correct parameters)', (done) => {
-        const userParam = {
+        const userParam = { 
             email: `${fctRandomString()}@me.com`,
-            password: `${fctRandomString()}`
+            password: `${fctRandomString()}` 
         }
         chai.request('http://localhost:5000')
             .post('/users')
             .send(userParam)
             .end((err, res) => {
-                console.log(err);
                 chai.expect(err).to.be.null;
                 chai.expect(res).to.have.status(201);
                 const resUserId = res.body.id
                 const resUserEmail = res.body.email
                 chai.expect(resUserEmail).to.equal(userParam.email);
-
+                
                 testClientDb.collection('users')
                     .find({})
                     .toArray((err, docs) => {
