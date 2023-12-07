@@ -30,6 +30,9 @@ class UsersController {
 
     res.status(201).json({ id: insertResult.insertedId, email });
   }
+
+  async getMe(req, res) {
+  }
 }
 
 export default UsersController;
