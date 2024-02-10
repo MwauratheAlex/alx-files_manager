@@ -6,9 +6,10 @@ class RedisClient {
     this.client = createClient();
     this.client.on('error', (err) => console.log(`Unable to create client: ${err}`));
 
-    this.isConnected = true;
+    this.isConnected = false;
     this.client.on('ready', () => {
       this.isConnected = true;
+      console.log('connected')
     });
     this.client.on('end', () => {
       this.isConnected = false;
