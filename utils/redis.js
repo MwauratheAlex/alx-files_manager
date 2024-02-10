@@ -4,13 +4,14 @@ import { promisify } from 'util';
 class RedisClient {
   constructor() {
     this.client = createClient();
-    this.clientConnected = true;
-    this.client.on('error', (err) => {
-      console.log(`Unable to create client: ${err}`);
-      this.clientConnected = false;
+    this.client.on('error', (err) => console.log(`Unable to create client: ${err}`));
+
+    this.isConnected = true;
+    this.client.on('ready', () => {
+      this.isConnected = true;
     });
-    this.client.on('connect', () => {
-      this.clientConnected = true;
+    this.client.on('end', () => {
+      this.isConnected = false;
     });
   }
 
@@ -19,7 +20,7 @@ class RedisClient {
    * @returns {Boolean} true if alive, else false
    */
   isAlive() {
-    return this.clientConnected;
+    return this.isConnected;
   }
 
   /**
