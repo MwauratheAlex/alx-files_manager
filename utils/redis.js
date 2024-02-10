@@ -12,7 +12,7 @@ class RedisClient {
    * @returns {Boolean} true if alive, else false
    */
   isAlive() {
-    return this.client.connected;
+    return this.client !== null;
   }
 
   /**
@@ -34,7 +34,7 @@ class RedisClient {
   */
   async set(key, value, duration) {
     const setAsync = promisify(this.client.set).bind(this.client);
-    await setAsync(key, value, { EX: duration });
+    await setAsync(key, value, 'EX', duration);
   }
 
   /**
