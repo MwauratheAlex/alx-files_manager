@@ -6,15 +6,12 @@ class DBClient {
     const port = process.env.DB_PORT || 27017;
     const database = process.env.DB_DATABASE || 'files_manager';
 
-    this.url = `mongodb://${host}:${port}`;
+    this.url = `mongodb://${host}:${port}/${database}`;
     this.client = new MongoClient(this.url);
 
     this.isConnected = false;
     this.client.connect()
-      .then(() => {
-        this.db = this.client.db(database);
-        this.isConnected = true;
-      })
+      .then(() => { this.isConnected = true; })
       .catch(() => { this.isConnected = false; });
 
     this.client.on('close', () => { this.isConnected = false; });
