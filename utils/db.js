@@ -30,16 +30,14 @@ class DBClient {
    * @returns {number} the number of documents in the collection users
    */
   async nbUsers() {
-    const userCount = await this.client.db().collection('users').countDocuments();
-    return userCount;
+    return this.client.db().collection('users').countDocuments();
   }
 
   /**
    * @returns {number} the number of documents in the collection files
    */
   async nbFiles() {
-    const fileCount = await this.client.db().collection('files').countDocuments();
-    return fileCount;
+    return this.client.db().collection('files').countDocuments();
   }
 }
 
