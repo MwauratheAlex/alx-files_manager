@@ -26,19 +26,18 @@ class RedisClient {
   /**
    * Returns redis value stored for key.
   * @param {string} key
-  * @returns {string}
+  * @returns {Promise<string>}
   */
   async get(key) {
     const getAsync = promisify(this.client.get).bind(this.client);
-    const value = await getAsync(key);
-    return value;
+    return getAsync(key);
   }
 
   /**
    * Stores a value for a key in redis that expires after duration
   * @param {string} key
   * @param {string} value
-  * @param {string} duration
+  * @param {string} duration - in seconds
   */
   async set(key, value, duration) {
     const setAsync = promisify(this.client.setex).bind(this.client);
@@ -50,7 +49,7 @@ class RedisClient {
   * @param {string} key
   */
   async del(key) {
-    const delAsync = promisify(this.client.del).bind(this.client);
+    const delAsync = promisify(this.client.DEL).bind(this.client);
     await delAsync(key);
   }
 }
