@@ -40,7 +40,7 @@ class AuthController {
 
     redisClient.set(key, userId, duration);
 
-    return res.status(201).json({ token });
+    return res.status(200).json({ token });
   }
 
   static async getDisconnect(req, res) {
