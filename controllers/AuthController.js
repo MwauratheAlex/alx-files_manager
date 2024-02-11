@@ -19,6 +19,7 @@ class AuthController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    // eslint-disable-next-line no-undef
     const userData = atob(authData[1]).split(':');
 
     if (userData.length !== 2) {
