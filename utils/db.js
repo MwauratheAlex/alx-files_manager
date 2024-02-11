@@ -2,17 +2,21 @@ import { MongoClient } from 'mongodb';
 
 class DBClient {
   constructor() {
-    const host = process.env.DB_HOST || 'localhost';
-    const port = process.env.DB_PORT || 27017;
-    const database = process.env.DB_DATABASE || 'files_manager';
+    this.host = process.env.DB_HOST || 'localhost';
+    this.port = process.env.DB_PORT || 27017;
+    this.database = process.env.DB_DATABASE || 'files_manager';
 
-    const url = `mongodb://${host}:${port}/${database}`;
-    this.client = new MongoClient(url);
+    this.url = `mongodb://${this.host}:${this.port}`;
+    this.client = new MongoClient(this.url);
+    this.db = this.client.db(this.database);
 
     this.isConnected = false;
     this.client.connect()
       .then(() => { this.isConnected = true; })
       .catch(() => { this.isConnected = false; });
+
+    this.client.on('close', () => { this.isConnected = false; });
+    this.client.on('error', () => { this.isConnected = false; });
   }
 
   /**
@@ -27,7 +31,7 @@ class DBClient {
    * @returns {number} the number of documents in the collection users
    */
   async nbUsers() {
-    const userCount = await this.client.db().collection('users').countDocuments();
+    const userCount = await this.db.collection('users').countDocuments();
     return userCount;
   }
 
@@ -35,7 +39,7 @@ class DBClient {
    * @returns {number} the number of documents in the collection files
    */
   async nbFiles() {
-    const fileCount = await this.client.db().collection('files').countDocuments();
+    const fileCount = await this.db.collection('files').countDocuments();
     return fileCount;
   }
 }
