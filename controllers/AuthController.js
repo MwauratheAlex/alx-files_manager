@@ -1,9 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
+import { ObjectId } from 'mongodb';
 import sha1 from 'sha1';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
-import { ObjectId } from 'mongodb';
-import { use } from 'chai';
 
 class AuthController {
   static async getConnect(req, res) {
