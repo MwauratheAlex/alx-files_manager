@@ -1,4 +1,6 @@
+import { ObjectId } from 'mongodb';
 import redisClient from '../utils/redis';
+import dbClient from '../utils/db';
 
 class FilesController {
   static async postUpload(req, res) {
@@ -9,9 +11,30 @@ class FilesController {
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const {
-      name,
+      name, type, parentId, data,
     } = req.body;
     if (!name) return res.status(400).json({ error: 'Missing name' });
+
+    const acceptedTypes = ['folder', 'file', 'image'];
+    if (!type || !acceptedTypes.includes(type)) {
+      return res.status(400).json({ error: 'Missing type' });
+    }
+
+    if (type !== 'folder' && !data) {
+      return res.status(400).json({ error: 'Missing data' });
+    }
+
+    if (parentId) {
+      const parentFile = await dbClient
+        .fileCollection.findOne({ _id: new ObjectId(String(parentId)) });
+      if (!parentFile) {
+        return res.status(400).json({ error: 'Parent not found' });
+      }
+      if (parentFile.type !== 'folder') {
+        return res.status(400).json({ error: 'Parent is not a folder' });
+      }
+    }
+
     return res.status(200).json('hello world');
   }
 }
