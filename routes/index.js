@@ -1,18 +1,15 @@
+import express from 'express';
 import AppController from '../controllers/AppController';
 import UsersController from '../controllers/UsersController';
 import AuthController from '../controllers/AuthController';
 
-/**
-  * adds route handlers to app
-  * @param {Express} app
-  */
-function loadRoutes(app) {
-  app.get('/status', AppController.status);
-  app.get('/stats', AppController.stats);
-  app.post('/users', UsersController.postNew);
-  app.get('/connect', AuthController.getConnect);
-  app.get('/disconnect', AuthController.getDisconnect);
-  app.get('/users/me', AuthController.getMe);
-}
+const router = express.Router();
 
-export default loadRoutes;
+router.get('/status', AppController.status);
+router.get('/stats', AppController.stats);
+router.post('/users', UsersController.postNew);
+router.get('/connect', AuthController.getConnect);
+router.get('/disconnect', AuthController.getDisconnect);
+router.get('/users/me', AuthController.getMe);
+
+export default router;
