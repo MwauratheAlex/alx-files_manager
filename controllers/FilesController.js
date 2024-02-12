@@ -29,7 +29,7 @@ class FilesController {
 
     if (parentId) {
       const parentFile = await dbClient
-        .fileCollection.findOne({ _id: new ObjectId(String(parentId)) });
+        .collection('files').findOne({ _id: new ObjectId(String(parentId)) });
       if (!parentFile) {
         return res.status(400).json({ error: 'Parent not found' });
       }
@@ -58,7 +58,7 @@ class FilesController {
       newFile.localPath = localPath;
       await fs.writeFile(localPath, Buffer.from(data, 'base64').toString('utf8'));
     }
-    const insertedFile = await dbClient.fileCollection.insertOne(newFile);
+    const insertedFile = await dbClient.collection('files').insertOne(newFile);
     return res.status(201).json({
       id: insertedFile.insertedId,
       userId,
