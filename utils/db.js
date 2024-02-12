@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { Collection, MongoClient } from 'mongodb';
 
 class DBClient {
   constructor() {
@@ -42,6 +42,20 @@ class DBClient {
 
   get collection() {
     return (collection) => this.client.db().collection(collection);
+  }
+
+  /**
+  * @returns {Collection}
+  */
+  get userCollection() {
+    return this.client.db().collection('users');
+  }
+
+  /**
+  * @returns {Collection}
+  */
+  get fileCollection() {
+    return this.client.db().collection('files').countDocuments();
   }
 }
 
