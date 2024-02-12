@@ -1,4 +1,4 @@
-import { Collection, MongoClient } from 'mongodb';
+import { MongoClient } from 'mongodb';
 
 class DBClient {
   constructor() {
