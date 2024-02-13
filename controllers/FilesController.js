@@ -56,6 +56,12 @@ class FilesController {
       const filename = uuidv4();
       const localPath = `${filePath}/${filename}`;
       newFile.localPath = localPath;
+
+      try {
+        await fs.writeFile(localPath, Buffer.from(data, 'base64'), 'utf8');
+      } catch (error) {
+        console.log(error);
+      }
     }
     const insertedFile = await dbClient.fileCollection.insertOne(newFile);
     return res.status(201).json({
