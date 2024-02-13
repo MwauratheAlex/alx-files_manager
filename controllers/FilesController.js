@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
-import { promises as fs } from 'fs';
+import fs from 'fs/promises';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 
@@ -48,18 +48,15 @@ class FilesController {
     if (parentId) newFile.parentId = parentId;
     if (type === 'file' || type === 'image') {
       const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
-      const fileName = `${filePath}/${uuidv4()}`;
-      const buff = Buffer.from(data, 'base64');
       try {
-        try {
-          await fs.mkdir(filePath);
-        } catch (error) {
-        // pass. Error raised when file already exists
-        }
-        await fs.writeFile(fileName, buff, 'utf-8');
+        await fs.mkdir(filePath, { recursive: true });
       } catch (error) {
-        console.log(error);
+        // skip error if file already exists
       }
+      const filename = uuidv4();
+      const localPath = `${filePath}/${filename}`;
+      newFile.localPath = localPath;
+      await fs.writeFile(localPath, Buffer.from(data, 'base64'), 'utf8');
     }
 
     return res.status(200).json('hello world');
