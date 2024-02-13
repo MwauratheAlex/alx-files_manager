@@ -1,7 +1,4 @@
 import { ObjectId } from 'mongodb';
-import { v4 as uuidv4 } from 'uuid';
-import { existsSync } from 'fs';
-import fs from 'fs/promises';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 
@@ -48,25 +45,7 @@ class FilesController {
     if (isPublic) newFile.isPublic = isPublic;
     if (parentId) newFile.parentId = parentId;
 
-    if (type === 'file' || type === 'image') {
-      const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
-      if (!existsSync(filePath)) {
-        await fs.mkdir(filePath, { recursive: true });
-      }
-      const filename = uuidv4();
-      const localPath = `${filePath}/${filename}`;
-      newFile.localPath = localPath;
-      await fs.writeFile(localPath, Buffer.from(data, 'base64').toString('utf8'));
-    }
-    const insertedFile = await dbClient.fileCollection.insertOne(newFile);
-    return res.status(201).json({
-      id: insertedFile.insertedId,
-      userId,
-      name,
-      type,
-      isPublic: newFile.isPublic,
-      parentId: newFile.parentId,
-    });
+    return res.status(200).json('hello world');
   }
 }
 
