@@ -76,6 +76,14 @@ class FilesController {
 
     return res.end();
   }
+
+  static getShow(req, res) {
+    return res.json('hello world');
+  }
+
+  static getIndex(req, res) {
+    return res.json('hello world');
+  }
 }
 
 export default FilesController;
