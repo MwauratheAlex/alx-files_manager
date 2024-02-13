@@ -49,17 +49,26 @@ class FilesController {
     if (type === 'file' || type === 'image') {
       const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
       try {
-        await fs.mkdir(filePath, { recursive: true });
+        await fs.mkdir(filePath);
       } catch (error) {
         // skip error if file already exists
       }
       const filename = uuidv4();
       const localPath = `${filePath}/${filename}`;
       newFile.localPath = localPath;
-      await fs.writeFile(localPath, Buffer.from(data, 'base64'), 'utf8');
+      await fs
+        .writeFile(localPath, Buffer.from(data, 'base64'), 'utf8')
+        .catch((err) => console.log(err));
     }
-
-    return res.status(200).json('hello world');
+    const insertedFile = await dbClient.fileCollection.insertOne(newFile);
+    return res.status(201).json({
+      id: insertedFile.insertedId,
+      userId,
+      name,
+      type,
+      isPublic: newFile.isPublic,
+      parentId: newFile.parentId,
+    });
   }
 }
 
