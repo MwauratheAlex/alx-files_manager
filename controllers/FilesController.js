@@ -74,7 +74,7 @@ class FilesController {
       });
     });
 
-    res.end();
+    return res.end();
   }
 }
 
