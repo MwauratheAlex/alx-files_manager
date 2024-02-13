@@ -49,9 +49,6 @@ class FilesController {
     if (parentId) newFile.parentId = parentId;
     if (type === 'file' || type === 'image') {
       const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
-      if (!existsSync(filePath)) {
-        await fs.mkdir(filePath, { recursive: true });
-      }
       const filename = uuidv4();
       const localPath = `${filePath}/${filename}`;
       newFile.localPath = localPath;
