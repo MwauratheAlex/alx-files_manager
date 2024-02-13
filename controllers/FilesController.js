@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs/promises';
+import { promises as fs } from 'fs';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 
@@ -56,9 +56,6 @@ class FilesController {
       const filename = uuidv4();
       const localPath = `${filePath}/${filename}`;
       newFile.localPath = localPath;
-      await fs
-        .writeFile(localPath, Buffer.from(data, 'base64'), 'utf8')
-        .catch((err) => console.log(err));
     }
     const insertedFile = await dbClient.fileCollection.insertOne(newFile);
     return res.status(201).json({
