@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
-import { promisify } from 'util';
-import fs from 'fs';
+import { existsSync } from 'fs';
+import fs from 'fs/promises';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 
@@ -49,13 +49,18 @@ class FilesController {
     if (parentId) newFile.parentId = parentId;
     if (type === 'file' || type === 'image') {
       const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
-      if (fs.existsSync(filePath)) {
-        await promisify(fs.mkdir).bind(fs)(filePath, { recursive: true });
+      if (!existsSync(filePath)) {
+        await fs
+          .mkdir(filePath, { recursive: true })
+          .catch((err) => res.status(500).json({ error: err }));
       }
       const filename = uuidv4();
       const localPath = `${filePath}/${filename}`;
       newFile.localPath = localPath;
-      await promisify(fs.writeFile).bind(fs)(localPath, Buffer.from(data, 'base64').toString('utf8'));
+      await fs
+        .writeFile(localPath, Buffer.from(data, 'base64')
+          .toString('utf8'))
+        .catch((err) => res.status(500).json({ error: err }));
     }
 
     return res.status(200).json('hello world');
