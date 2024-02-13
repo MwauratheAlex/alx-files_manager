@@ -50,17 +50,11 @@ class FilesController {
     if (type === 'file' || type === 'image') {
       const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
       if (!existsSync(filePath)) {
-        await fs
-          .mkdir(filePath, { recursive: true })
-          .catch((err) => res.status(500).json({ error: err }));
+        await fs.mkdir(filePath, { recursive: true });
       }
       const filename = uuidv4();
       const localPath = `${filePath}/${filename}`;
       newFile.localPath = localPath;
-      await fs
-        .writeFile(localPath, Buffer.from(data, 'base64')
-          .toString('utf8'))
-        .catch((err) => res.status(500).json({ error: err }));
     }
 
     return res.status(200).json('hello world');
