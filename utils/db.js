@@ -44,16 +44,10 @@ class DBClient {
     return (collection) => this.client.db().collection(collection);
   }
 
-  /**
-  * @returns {Collection}
-  */
   get userCollection() {
     return this.client.db().collection('users');
   }
 
-  /**
-  * @returns {Collection}
-  */
   get fileCollection() {
     return this.client.db().collection('files');
   }

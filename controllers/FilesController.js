@@ -63,18 +63,15 @@ class FilesController {
         console.log(error);
       }
     }
-    dbClient.fileCollection.insertOne(newFile).then((result) => {
-      res.status(201).json({
-        id: result.insertedId,
-        userId,
-        name,
-        type,
-        isPublic: newFile.isPublic,
-        parentId: newFile.parentId,
-      });
+    const result = await dbClient.fileCollection.insertOne(newFile);
+    return res.status(201).json({
+      id: result.insertedId,
+      userId,
+      name,
+      type,
+      isPublic: newFile.isPublic,
+      parentId: newFile.parentId,
     });
-
-    return res.end();
   }
 
   static getShow(req, res) {
