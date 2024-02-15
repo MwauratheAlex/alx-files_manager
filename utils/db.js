@@ -55,7 +55,7 @@ class DBClient {
   * @returns {Collection}
   */
   get fileCollection() {
-    return this.client.db().collection('files').countDocuments();
+    return this.client.db().collection('files');
   }
 }
 
