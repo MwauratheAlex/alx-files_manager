@@ -17,8 +17,7 @@ export function getAuthData(authHeader) {
 }
 
 export function getUserData(authData) {
-  // eslint-disable-next-line no-undef
-  const userData = atob(authData).split(':');
+  const userData = Buffer.from(authData, 'base64').toString('utf8').split(':');
   if (userData.length !== 2) return null;
   return { email: userData[0], password: userData[1] };
 }
