@@ -102,9 +102,6 @@ class FilesController {
     const userId = await getUserIdBasedOnToken(req);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
     let { parentId, page } = req.query;
-    const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
-    // parentId = isValidObjectId(parentId) ? new ObjectId(String(parentId)) : '0';
-    // console.log(parentId);
     if (parentId) {
       parentId = new ObjectId(String(parentId));
       const parentFile = await dbClient.fileCollection
