@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { promises as fs } from 'fs';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
+import { getUserIdBasedOnToken } from '../utils/utils';
 
 class FilesController {
   static async postUpload(req, res) {
@@ -74,12 +75,45 @@ class FilesController {
     });
   }
 
-  static getShow(req, res) {
-    return res.json('hello world');
+  static async getShow(req, res) {
+    const userId = await getUserIdBasedOnToken(req);
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    const { id } = req.params;
+    const file = await dbClient
+      .fileCollection
+      .findOne({ _id: new ObjectId(String(id)), userId });
+    if (!file) return res.status(404).json({ error: 'Not found' });
+    return res.json(file);
   }
 
-  static getIndex(req, res) {
-    return res.json('hello world');
+  /**
+   * @param {Express.Request} req The request object.
+   * @param {Express.Response} res The response object.
+   */
+  static async getIndex(req, res) {
+    const userId = await getUserIdBasedOnToken(req);
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    let { parentId, page } = req.query;
+    if (parentId) {
+      const parentFile = await dbClient.fileCollection
+        .findOne({ _id: new ObjectId(String(parentId)) });
+      if (!parentFile) return res.json([]);
+    }
+
+    if (!parentId) parentId = 0;
+    if (!page) page = 0;
+    const pageSize = 20;
+    const pageStart = page * pageSize;
+
+    const files = await dbClient
+      .fileCollection
+      .find({ userId, parentId })
+      .skip(pageStart)
+      .limit(pageSize)
+      .toArray();
+
+    return res.json(files);
   }
 }
 

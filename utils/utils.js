@@ -1,5 +1,6 @@
 import sha1 from 'sha1';
 import dbClient from './db';
+import redisClient from './redis';
 
 export function getAuthHeader(req) {
   const authHeader = req.headers.authorization;
@@ -28,4 +29,15 @@ export async function getUser(email, password) {
   const hashedPassword = sha1(password);
   if (user.password !== hashedPassword) return null;
   return user;
+}
+
+/**
+ * @param {Express.Request} req The request object.
+ */
+export async function getUserIdBasedOnToken(req) {
+  const authToken = req.headers['x-token'];
+  if (!authToken) return null;
+  const userId = await redisClient.get(`auth_${authToken}`);
+  if (!userId) return null;
+  return userId;
 }
