@@ -115,10 +115,23 @@ class FilesController {
 
     const files = await dbClient
       .fileCollection
-      .find({ userId, parentId })
-      .skip(pageStart)
-      .limit(pageSize)
-      .toArray();
+      .aggregate([
+        { $match: { userId, parentId } },
+        { $sort: { _id: -1 } },
+        { $skip: pageStart },
+        { $limit: pageSize },
+        {
+          $project: {
+            _id: 0,
+            id: '$_id',
+            userId: '$userId',
+            name: '$name',
+            type: '$type',
+            isPublic: '$isPublic',
+            parentId: '$parentId',
+          },
+        },
+      ]).toArray();
 
     return res.json(files);
   }
