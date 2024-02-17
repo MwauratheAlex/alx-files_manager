@@ -43,7 +43,7 @@ class FilesController {
       name,
       type,
       isPublic: false,
-      parentId: 0,
+      parentId: '0',
     };
     if (isPublic) newFile.isPublic = isPublic;
     if (parentId) newFile.parentId = parentId;
@@ -108,7 +108,7 @@ class FilesController {
       if (!parentFile) return res.json([]);
     }
 
-    if (!parentId) parentId = 0;
+    if (!parentId) parentId = '0';
     page = parseInt(page, 10);
     if (!page) page = 0;
     const pageSize = 20;
