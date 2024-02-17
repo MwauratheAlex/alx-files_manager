@@ -46,7 +46,7 @@ class FilesController {
       parentId: '0',
     };
     if (isPublic) newFile.isPublic = isPublic;
-    if (parentId) newFile.parentId = parentId;
+    if (parentId) newFile.parentId = new ObjectId(String(parentId));
     if (type === 'file' || type === 'image') {
       const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
       try {
