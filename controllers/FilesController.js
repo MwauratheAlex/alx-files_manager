@@ -100,7 +100,6 @@ class FilesController {
   static async getIndex(req, res) {
     const userId = await getUserIdBasedOnToken(req);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-    console.log(userId);
     let { parentId, page } = req.query;
     if (parentId) {
       const parentFile = await dbClient.fileCollection
@@ -116,7 +115,7 @@ class FilesController {
 
     const filter = {
       userId: new ObjectId(String(userId)),
-      parentId,
+      parentId: new ObjectId(String(parentId)),
     };
     const files = await dbClient
       .fileCollection
