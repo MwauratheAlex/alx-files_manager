@@ -43,7 +43,7 @@ class FilesController {
       name,
       type,
       isPublic: false,
-      parentId: '0',
+      parentId: 0,
     };
     if (isPublic) newFile.isPublic = isPublic;
     if (parentId) newFile.parentId = new ObjectId(String(parentId));
@@ -71,7 +71,7 @@ class FilesController {
       name,
       type,
       isPublic: newFile.isPublic,
-      parentId: newFile.parentId.toString(),
+      parentId: newFile.parentId,
     });
   }
 

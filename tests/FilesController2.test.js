@@ -58,37 +58,7 @@ describe('GET /files', () => {
           const createdDocs = await testClientDb.db().collection('users').insertOne(initialUser);
           if (createdDocs) initialUserId = createdDocs.insertedId.toString();
                     
-          // Add folders
-          const initialFolders = []
-          for(let i = 0 ; i < 25 ; i += 1) {
-            const item = { 
-              userId: new ObjectId(String(initialUserId)), 
-              name: fctRandomString(), 
-              type: "folder", 
-              parentId: '0' 
-            };
-            const createdFileDocs = await testClientDb.db().collection('files').insertOne(item);
-            if (createdFileDocs) {
-              item.id = createdFileDocs.insertedId.toString();
-            }
-            initialFolders.push(item)
-          }
-
-          // Add 2 folders inside a folder
-          for(let i = 0 ; i < 2 ; i += 1) {
-            const item = { 
-              userId: new ObjectId(String(initialUserId)), 
-              name: fctRandomString(), 
-              type: "folder", 
-              parentId: new ObjectId(String(initialFolders[0].id))
-            };
-            const createdFileDocs = await testClientDb.db().collection('files').insertOne(item);
-            if (createdFileDocs) {
-                item.id = createdFileDocs.insertedId.toString();
-            }
-            initialFiles.push(item)
-          }
-          testRedisClient = redis.createClient();
+                    testRedisClient = redis.createClient();
           redisDelAsync = promisify(testRedisClient.del).bind(testRedisClient);
           redisGetAsync = promisify(testRedisClient.get).bind(testRedisClient);
           redisSetAsync = promisify(testRedisClient.set).bind(testRedisClient);
@@ -106,34 +76,36 @@ describe('GET /files', () => {
   afterEach(() => {
     fctRemoveAllRedisKeys();
   });
+  it('POST /files creates a folder at the root', (done) => {
+    const fileData = {
+        name: fctRandomString(),
+        type: 'folder',
+    }
+    chai.request('http://localhost:5000')
+      .post('/files')
+      .set('X-Token', initialUserToken)
+      .send(fileData)
+      .end(async (err, res) => {
+        chai.expect(err).to.be.null;
+        chai.expect(res).to.have.status(201);
 
-  it('GET /files with a valid parentId and no page', (done) => {
-  chai.request('http://localhost:5000')
-    .get(`/files`)
-    .query({ parentId: initialFiles[0].parentId.toString() })
-    .set('X-Token', initialUserToken)
-    .end(async (err, res) => {
-      chai.expect(err).to.be.null;
-     // chai.expect(res).to.have.status(200);
-
-     // const resList = res.body;
-     // chai.expect(resList.length).to.equal(2);
-
-     // resList.forEach((item) => {
-     //   const itemIdx = initialFiles.findIndex((i) => i.id == item.id);
-     //   chai.assert.isAtLeast(itemIdx, 0);
-     //   
-     //   const itemInit = initialFiles.splice(itemIdx, 1)[0];
-     //   chai.expect(itemInit).to.not.be.null;
-
-
-     //   chai.expect(itemInit.type).to.equal(item.type);
-     //   chai.expect(itemInit.parentId.toString()).to.equal(item.parentId.toString());
-     // });
-     // 
-     // chai.expect(initialFiles.length).to.equal(0);
-
-      done();
-    });
-}).timeout(30000);
-});
+        const resFile = res.body;
+        chai.expect(resFile.name).to.equal(fileData.name);
+        chai.expect(resFile.userId).to.equal(initialUserId);
+        chai.expect(resFile.type).to.equal(fileData.type);
+        chai.expect(resFile.parentId).to.equal(0);
+        
+        const docs = await testClientDb.db().collection('files')
+          .find({})
+          .toArray();
+          chai.expect(docs.length).to.equal(1);
+          const docFile = docs[0];
+          chai.expect(docFile.name).to.equal(fileData.name);
+          chai.expect(docFile._id.toString()).to.equal(resFile.id);
+          chai.expect(docFile.userId.toString()).to.equal(initialUserId);
+          chai.expect(docFile.type).to.equal(fileData.type);
+          chai.expect(docFile.parentId.toString()).to.equal('0');
+          done();
+      });
+    }).timeout(30000);
+  });
