@@ -71,7 +71,7 @@ class FilesController {
       name,
       type,
       isPublic: newFile.isPublic,
-      parentId: newFile.parentId,
+      parentId: newFile.parentId.toString(),
     });
   }
 
@@ -89,7 +89,7 @@ class FilesController {
       name: file.name,
       type: file.type,
       isPublic: file.isPublic,
-      parentId: file.parentId,
+      parentId: file.parentId.toString(),
     });
   }
 
