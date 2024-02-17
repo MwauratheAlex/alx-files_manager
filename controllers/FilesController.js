@@ -83,7 +83,14 @@ class FilesController {
       .fileCollection
       .findOne({ _id: new ObjectId(String(id)), userId });
     if (!file) return res.status(404).json({ error: 'Not found' });
-    return res.json(file);
+    return res.status(200).json({
+      id,
+      userId,
+      name: file.name,
+      type: file.type,
+      isPublic: file.isPublic,
+      parentId: file.parentId,
+    });
   }
 
   /**
