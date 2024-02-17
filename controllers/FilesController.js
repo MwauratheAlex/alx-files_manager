@@ -79,6 +79,7 @@ class FilesController {
     const userId = await getUserIdBasedOnToken(req);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
     const { id } = req.params;
+    console.log('here');
     const file = await dbClient
       .fileCollection
       .findOne({ _id: new ObjectId(String(id)), userId: new ObjectId(String(userId)) });
@@ -101,9 +102,13 @@ class FilesController {
     const userId = await getUserIdBasedOnToken(req);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
     let { parentId, page } = req.query;
+    const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
+    // parentId = isValidObjectId(parentId) ? new ObjectId(String(parentId)) : '0';
+    // console.log(parentId);
     if (parentId) {
+      parentId = new ObjectId(String(parentId));
       const parentFile = await dbClient.fileCollection
-        .findOne({ _id: new ObjectId(String(parentId)) });
+        .findOne({ _id: parentId });
       if (!parentFile) return res.json([]);
     }
 
@@ -115,7 +120,7 @@ class FilesController {
 
     const filter = {
       userId: new ObjectId(String(userId)),
-      parentId: new ObjectId(String(parentId)),
+      parentId,
     };
     const files = await dbClient
       .fileCollection
