@@ -114,10 +114,14 @@ class FilesController {
     const pageSize = 20;
     const pageStart = page * pageSize;
 
+    const filter = {
+      userId: new ObjectId(String(userId)),
+      parentId,
+    };
     const files = await dbClient
       .fileCollection
       .aggregate([
-        { $match: { userId, parentId } },
+        { $match: filter },
         { $sort: { _id: -1 } },
         { $skip: pageStart },
         { $limit: pageSize },
@@ -133,7 +137,6 @@ class FilesController {
           },
         },
       ]).toArray();
-
     return res.json(files);
   }
 }
