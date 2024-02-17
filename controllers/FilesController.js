@@ -109,6 +109,7 @@ class FilesController {
     }
 
     if (!parentId) parentId = 0;
+    page = parseInt(page, 10);
     if (!page) page = 0;
     const pageSize = 20;
     const pageStart = page * pageSize;
