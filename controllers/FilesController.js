@@ -133,8 +133,7 @@ class FilesController {
             userId: '$userId',
             name: '$name',
             type: '$type',
-            isPublic: '$isPublic',
-            parentId: '$parentId',
+
           },
         },
       ]).toArray();
