@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 import { getUserIdBasedOnToken } from '../utils/utils';
+import { contentType } from 'mime-types';
 
 class FilesController {
   static async postUpload(req, res) {
@@ -79,7 +80,6 @@ class FilesController {
     const userId = await getUserIdBasedOnToken(req);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
     const { id } = req.params;
-    console.log('here');
     const file = await dbClient
       .fileCollection
       .findOne({ _id: new ObjectId(String(id)), userId: new ObjectId(String(userId)) });
@@ -169,10 +169,33 @@ class FilesController {
     if (!file) return res.status(404).json({ error: 'Not found' });
     file.isPublic = false;
     await dbClient
-      .fileCollection.updateOne(filter, { $set: { isPublic: true } });
+      .fileCollection.updateOne(filter, { $set: { isPublic: false } });
     const { localPath, ...rest } = file;
 
     return res.status(200).json(rest);
+  }
+
+  static async getFile(req, res) {
+    const userId = await getUserIdBasedOnToken(req);
+    const { id } = req.params;
+
+    const file = await dbClient.fileCollection.findOne({ _id: new ObjectId(String(id)) });
+    if (!file) return res.status(404).json({ error: 'Not found' });
+
+    if (!file.isPublic && (!userId || file.userId.toString() !== userId)) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    if (file.type === 'folder') {
+      return res.status(400).json('A folder doesn\'t have content');
+    }
+    try {
+      const fileContent = await fs.readFile(file.localPath, { encoding: 'utf8' });
+      if (!fileContent) return res.status(404).json('Not found');
+      res.setHeader('Content-Type', contentType(file.name) || 'text/plain; charset=utf-8');
+      return res.status(200).json(fileContent);
+    } catch (error) {
+      return res.status(404).json('Not found');
+    }
   }
 }
 
