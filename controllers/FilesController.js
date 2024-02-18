@@ -2,16 +2,15 @@ import { ObjectId } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import { promises as fs } from 'fs';
 import { contentType } from 'mime-types';
-import redisClient from '../utils/redis';
+import Queue from 'bull';
 import dbClient from '../utils/db';
 import { getUserIdBasedOnToken } from '../utils/utils';
 
+const fileQueue = new Queue('Image thumbnails generation queue');
+
 class FilesController {
   static async postUpload(req, res) {
-    const authToken = req.headers['x-token'];
-    if (!authToken) return res.status(401).json({ error: 'Unauthorized' });
-
-    const userId = await redisClient.get(`auth_${authToken}`);
+    const userId = await getUserIdBasedOnToken(req);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const {
@@ -66,6 +65,11 @@ class FilesController {
       }
     }
     const result = await dbClient.fileCollection.insertOne(newFile);
+    if (type === 'image') {
+      // queue stuff
+      const name = `Generate thumbnail [${userId}-${result.insertedId}]`;
+      fileQueue.add({ userId, fileId: result.insertedId, name });
+    }
     return res.status(201).json({
       id: result.insertedId,
       userId,
@@ -178,6 +182,7 @@ class FilesController {
   static async getFile(req, res) {
     const userId = await getUserIdBasedOnToken(req);
     const { id } = req.params;
+    const { size } = req.query;
 
     const file = await dbClient.fileCollection.findOne({ _id: new ObjectId(String(id)) });
     if (!file) return res.status(404).json({ error: 'Not found' });
@@ -188,10 +193,11 @@ class FilesController {
       return res.status(400).json({ error: 'A folder doesn\'t have content' });
     }
     try {
-      const fileContent = await fs.readFile(file.localPath, { encoding: 'utf8' });
+      const filePath = size ? `${file.localPath}_${size}` : file.localPath;
+      const fileContent = await fs.readFile(filePath);
       if (!fileContent) return res.status(404).json({ error: 'Not found' });
       res.setHeader('Content-Type', contentType(file.name) || 'text/plain; charset=utf-8');
-      return res.status(200).send(`${fileContent}`);
+      return res.status(200).send(fileContent);
     } catch (error) {
       return res.status(404).json({ error: 'Not found' });
     }
