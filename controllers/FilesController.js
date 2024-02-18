@@ -192,7 +192,7 @@ class FilesController {
       const fileContent = await fs.readFile(file.localPath, { encoding: 'utf8' });
       if (!fileContent) return res.status(404).json('Not found');
       res.setHeader('Content-Type', contentType(file.name) || 'text/plain; charset=utf-8');
-      return res.status(200).json(fileContent);
+      return res.status(200).send(`${fileContent}`);
     } catch (error) {
       return res.status(404).json('Not found');
     }
