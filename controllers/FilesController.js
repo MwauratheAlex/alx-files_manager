@@ -94,10 +94,6 @@ class FilesController {
     });
   }
 
-  /**
-   * @param {Express.Request} req The request object.
-   * @param {Express.Response} res The response object.
-   */
   static async getIndex(req, res) {
     const userId = await getUserIdBasedOnToken(req);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
@@ -139,6 +135,44 @@ class FilesController {
         },
       ]).toArray();
     return res.json(files);
+  }
+
+  static async putPublish(req, res) {
+    const userId = await getUserIdBasedOnToken(req);
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { id } = req.params;
+    const filter = {
+      _id: new ObjectId(String(id)),
+      userId: new ObjectId(String(userId)),
+    };
+    const file = await dbClient.fileCollection.findOne(filter);
+    if (!file) return res.status(404).json({ error: 'Not found' });
+    file.isPublic = true;
+    await dbClient
+      .fileCollection.updateOne(filter, { $set: { isPublic: true } });
+    const { localPath, ...rest } = file;
+
+    return res.status(200).json(rest);
+  }
+
+  static async putUnpublish(req, res) {
+    const userId = await getUserIdBasedOnToken(req);
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { id } = req.params;
+    const filter = {
+      _id: new ObjectId(String(id)),
+      userId: new ObjectId(String(userId)),
+    };
+    const file = await dbClient.fileCollection.findOne(filter);
+    if (!file) return res.status(404).json({ error: 'Not found' });
+    file.isPublic = false;
+    await dbClient
+      .fileCollection.updateOne(filter, { $set: { isPublic: true } });
+    const { localPath, ...rest } = file;
+
+    return res.status(200).json(rest);
   }
 }
 
