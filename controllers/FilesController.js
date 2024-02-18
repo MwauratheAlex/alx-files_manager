@@ -1,10 +1,10 @@
 import { ObjectId } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import { promises as fs } from 'fs';
+import { contentType } from 'mime-types';
 import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
 import { getUserIdBasedOnToken } from '../utils/utils';
-import { contentType } from 'mime-types';
 
 class FilesController {
   static async postUpload(req, res) {
@@ -181,7 +181,6 @@ class FilesController {
 
     const file = await dbClient.fileCollection.findOne({ _id: new ObjectId(String(id)) });
     if (!file) return res.status(404).json({ error: 'Not found' });
-
     if (!file.isPublic && (!userId || file.userId.toString() !== userId)) {
       return res.status(404).json({ error: 'Not found' });
     }
@@ -190,11 +189,11 @@ class FilesController {
     }
     try {
       const fileContent = await fs.readFile(file.localPath, { encoding: 'utf8' });
-      if (!fileContent) return res.status(404).json('Not found');
+      if (!fileContent) return res.status(404).json({ error: 'Not found' });
       res.setHeader('Content-Type', contentType(file.name) || 'text/plain; charset=utf-8');
       return res.status(200).send(`${fileContent}`);
     } catch (error) {
-      return res.status(404).json('Not found');
+      return res.status(404).json({ error: 'Not found' });
     }
   }
 }
