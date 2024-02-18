@@ -23,8 +23,9 @@ describe('GET /files', () => {
   let initialUserId = null;
   let initialUserToken = null;
 
-  let initialUnpublishedFileId = null;
-  let initialPublishedFileId = null;
+  let initialUnpublishedFolderId = null;
+  let initialPublishedFolderId = null;
+
 
   const folderTmpFilesManagerPath = process.env.FOLDER_PATH || '/tmp/files_manager';
 
@@ -36,11 +37,6 @@ describe('GET /files', () => {
     keys.forEach(async (key) => {
         await redisDelAsync(key);
     });
-  }
-  const fctCreateTmp = () => {
-    if (!fs.existsSync(folderTmpFilesManagerPath)) {
-      fs.mkdirSync(folderTmpFilesManagerPath);
-    }
   }
   const fctRemoveTmp = () => {
     if (fs.existsSync(folderTmpFilesManagerPath)) {
@@ -71,35 +67,33 @@ describe('GET /files', () => {
           }
           const createdDocs = await testClientDb.db().collection('users').insertOne(initialUser);
           if (createdDocs) initialUserId = createdDocs.insertedId.toString();
-          
-          // Add 1 file publish
-          fctCreateTmp();
-          const initialFileP = { 
+          // Add 1 folder unpublished
+          const initialUnpublishedFolder = { 
             userId: new ObjectId(String(initialUserId)), 
             name: fctRandomString(), 
-            type: "file", 
+            type: "folder", 
             parentId: '0',
-            isPublic: true,
-            localPath: `${folderTmpFilesManagerPath}/${uuidv4()}`
+            isPublic: false
           };
-          const createdFilePDocs = await testClientDb.db().collection('files').insertOne(initialFileP);
-          if (createdFilePDocs) {
-            initialPublishedFileId = createdFilePDocs.insertedId.toString();
+          const createdUFolderDocs = await testClientDb
+            .db().collection('files').insertOne(initialUnpublishedFolder);
+          if (createdUFolderDocs) {
+            initialUnpublishedFolderId = createdUFolderDocs.insertedId.toString();
           }
 
-          // Add 1 file unpublish
-          const initialFileUP = { 
+          // Add 1 folder published 
+          const initialPublishedFolder = { 
             userId: new ObjectId(String(initialUserId)), 
             name: fctRandomString(), 
-            type: "file", 
+            type: "folder", 
             parentId: '0',
-            isPublic: false,
-            localPath: `${folderTmpFilesManagerPath}/${uuidv4()}`
+            isPublic: true
           };
-          const createdFileUPDocs = await testClientDb.db().collection('files').insertOne(initialFileUP);
-          if (createdFileUPDocs) {
-            initialUnpublishedFileId = createdFileUPDocs.insertedId.toString();
-          }          
+          const createdPFolderDocs = await testClientDb
+            .db().collection('files').insertOne(initialPublishedFolder);
+          if (createdPFolderDocs) {
+            initialPublishedFolderId = createdPFolderDocs.insertedId.toString();
+          }
           testRedisClient = redis.createClient();
           redisDelAsync = promisify(testRedisClient.del).bind(testRedisClient);
           redisGetAsync = promisify(testRedisClient.get).bind(testRedisClient);
@@ -118,32 +112,33 @@ describe('GET /files', () => {
     fctRemoveAllRedisKeys();
     fctRemoveTmp();
   });
-it('GET /files/:id/data with an unpublished file not present locally linked to :id and user authenticated and owner', (done) => {
-        chai.request('http://localhost:5000')
-            .get(`/files/${initialUnpublishedFileId}/data`)
-            .end(async (err, res) => {
-                chai.expect(err).to.be.null;
-                chai.expect(res).to.have.status(404);
-
-                const resError = res.body.error;
-                chai.expect(resError).to.equal("Not found");
-                
-                done();
-            });
-    }).timeout(30000);
-
-    it('GET /files/:id/data with an published file not present locally linked to :id and user authenticated and owner', (done) => {
+  it('GET /files/:id/data with an unpublished folder linked to :id and user authenticated and owner',
+    (done) => {
       chai.request('http://localhost:5000')
-        .get(`/files/${initialPublishedFileId}/data`)
+        .get(`/files/${initialUnpublishedFolderId}/data`)
+        .set('X-Token', initialUserToken)
         .end(async (err, res) => {
           chai.expect(err).to.be.null;
-          chai.expect(res).to.have.status(404);
+          chai.expect(res).to.have.status(400);
 
           const resError = res.body.error;
-          chai.expect(resError).to.equal("Not found");
-          console.log(resError)
+          chai.expect(resError).to.equal("A folder doesn't have content");
           
           done();
         });
     }).timeout(30000);
-});
+
+    it('GET /files/:id/data with a published folder linked to :id and user authenticated and owner', (done) => {
+      chai.request('http://localhost:5000')
+        .get(`/files/${initialPublishedFolderId}/data`)
+        .set('X-Token', initialUserToken)
+        .end(async (err, res) => {
+          chai.expect(err).to.be.null;
+          chai.expect(res).to.have.status(400);
+
+          const resError = res.body.error;
+          chai.expect(resError).to.equal("A folder doesn't have content");
+          
+          done();
+        });
+    }).timeout(30000);});

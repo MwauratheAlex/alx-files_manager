@@ -185,7 +185,7 @@ class FilesController {
       return res.status(404).json({ error: 'Not found' });
     }
     if (file.type === 'folder') {
-      return res.status(400).json('A folder doesn\'t have content');
+      return res.status(400).json({ error: 'A folder doesn\'t have content' });
     }
     try {
       const fileContent = await fs.readFile(file.localPath, { encoding: 'utf8' });
