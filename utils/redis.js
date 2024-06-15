@@ -6,10 +6,6 @@ class RedisClient {
     this.client = createClient();
     this.clientConnected = false;
 
-    this.asyncGet = promisify(this.client.get).bind(this.client);
-    this.asyncSet = promisify(this.client.set).bind(this.client);
-    this.asyncDel = promisify(this.client.del).bind(this.client);
-
     this.client
       .on('error', (error) => {
         console.log(`RedisClient Error: ${error}`);
@@ -27,16 +23,19 @@ class RedisClient {
   }
 
   async get(key) {
-    const value = await this.asyncGet(key);
+    const asyncGet = promisify(this.client.get).bind(this.client);
+    const value = await asyncGet(key);
     return value;
   }
 
   async set(key, value, duration) {
-    await this.asyncSet(key, value, 'EX', duration);
+    const asyncSet = promisify(this.client.set).bind(this.client);
+    await asyncSet(key, value, 'EX', duration);
   }
 
   async del(key) {
-    await this.asyncDel(key);
+    const asyncDel = promisify(this.client.del).bind(this.client);
+    await asyncDel(key);
   }
 }
 
