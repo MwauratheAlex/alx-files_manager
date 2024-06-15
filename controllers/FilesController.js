@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
+import { constrainedMemory } from 'process';
 import dbClient from '../utils/db';
 import Utils from '../utils/utils';
 
@@ -47,23 +48,29 @@ class FilesController {
         res.status(400).json({ error: 'Parent not found' });
         return;
       }
-      if (file.type === 'folder') {
+
+      console.log(file);
+      if (file.type !== 'folder') {
         res.status(400).json({ error: 'Parent is not a folder' });
         return;
       }
     }
 
     const newFile = {
-      userId: user._id.toString,
+      userId: user._id.toString(),
       name,
       type,
       isPublic: Boolean(isPublic),
       parentId: parentId || 0,
     };
 
+    let insertedFile;
     if (type === 'folder') {
-      dbClient.db.collection('files').insertOne(newFile);
+      insertedFile = await dbClient.db.collection('files').insertOne(newFile);
+      newFile.id = insertedFile.insertedId.toString();
+      delete newFile._id;
       res.status(201).json(newFile);
+
       return;
     }
 
@@ -71,7 +78,9 @@ class FilesController {
     const filePath = uuidv4();
 
     if (!fs.existsSync(folderPath)) {
-      fs.mkdir(folderPath);
+      fs.mkdir(folderPath, (err) => {
+        if (err) console.log(`error making folder: ${err}`);
+      });
     }
 
     fs.writeFile(
@@ -81,7 +90,14 @@ class FilesController {
       },
     );
 
-    newFile.localPath = `${folderPath}/${filePath}`;
+    insertedFile = await dbClient.db.collection('files').insertOne({
+      ...newFile,
+      localPath: `${folderPath}/${filePath}`,
+    });
+
+    delete newFile._id;
+
+    newFile.id = insertedFile.insertedId.toString();
 
     res.status(201).json(newFile);
   }
