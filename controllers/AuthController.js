@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
+import Utils from '../utils/utils';
 
 const sha1 = require('sha1');
 // eslint-disable-next-line no-unused-vars
@@ -82,30 +83,16 @@ class AuthController {
   * @param {express.Response} res
   */
   static async getMe(req, res) {
-    const token = req.headers['x-token'];
-    if (!token) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
+    const loggedInUser = await Utils.getLoggedInUser(req);
 
-    const userId = await redisClient.get(`auth_${token}`);
-    if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
-
-    const user = await dbClient
-      .db.collection('users')
-      .findOne({ _id: new ObjectId(String(userId)) });
-
-    if (!user) {
+    if (!loggedInUser) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
     res.status(200).json({
-      id: user._id.toString(),
-      email: user.email,
+      id: loggedInUser._id.toString(),
+      email: loggedInUser.email,
     });
   }
 }
