@@ -49,7 +49,6 @@ class FilesController {
         return;
       }
 
-      console.log(file);
       if (file.type !== 'folder') {
         res.status(400).json({ error: 'Parent is not a folder' });
         return;
