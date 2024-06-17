@@ -83,12 +83,14 @@ class FilesController {
       // do nothing
     }
 
-    fs.writeFile(
-      `${folderPath}/${filePath}`,
-      Buffer.from(data, 'base64').toString(), 'utf8', (err) => {
-        if (err) console.log(`error writing file: ${err}`);
-      },
-    );
+    try {
+      fs.writeFile(
+        `${folderPath}/${filePath}`,
+        Buffer.from(data, 'base64').toString(), 'utf8',
+      );
+    } catch (_) {
+      // do nothing
+    }
 
     insertedFile = await dbClient.db.collection('files').insertOne({
       ...newFile,
@@ -134,7 +136,6 @@ class FilesController {
       return;
     }
 
-    const { parentId, page } = req.query;
     res.json();
   }
 }
