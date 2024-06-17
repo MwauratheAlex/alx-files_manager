@@ -101,28 +101,6 @@ class FilesController {
 
     res.status(201).json(newFile);
   }
-
-  /**
-  * @param {express.Request} req
-  * @param {express.Response} res
-  */
-  static async getShow(req, res) {
-    const { id } = req.params;
-
-    const user = await Utils.getLoggedInUser(req);
-    if (!user) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
-
-    const document = await Utils.getDocumentById(id);
-    if (!document) {
-      res.status(404).json({ error: 'Not found' });
-      return;
-    }
-
-    res.status(200).json(document);
-  }
 }
 
 export default FilesController;
