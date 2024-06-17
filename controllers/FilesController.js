@@ -30,7 +30,7 @@ class FilesController {
       return;
     }
 
-    if (!type || !acceptedTypes.includes(type)) {
+    if (!(type && acceptedTypes.includes(type))) {
       res.status(400).json({ error: 'Missing type' });
       return;
     }
@@ -77,20 +77,18 @@ class FilesController {
     const folderPath = process.env.FOLDER_PATH || '/tmp/files_manager';
     const filePath = uuidv4();
 
-    try {
-      fs.mkdir(folderPath);
-    } catch (_) {
-      // do nothing
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdir(folderPath, (err) => {
+        if (err) console.log(`error making folder: ${err}`);
+      });
     }
 
-    try {
-      fs.writeFile(
-        `${folderPath}/${filePath}`,
-        Buffer.from(data, 'base64').toString(), 'utf8',
-      );
-    } catch (_) {
-      // do nothing
-    }
+    fs.writeFile(
+      `${folderPath}/${filePath}`,
+      Buffer.from(data, 'base64').toString(), (err) => {
+        if (err) console.log(`error writing file: ${err}`);
+      },
+    );
 
     insertedFile = await dbClient.db.collection('files').insertOne({
       ...newFile,
@@ -109,13 +107,14 @@ class FilesController {
   * @param {express.Response} res
   */
   static async getShow(req, res) {
+    const { id } = req.params;
+
     const user = await Utils.getLoggedInUser(req);
     if (!user) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
-    const { id } = req.params;
     const document = await Utils.getDocumentById(id);
     if (!document) {
       res.status(404).json({ error: 'Not found' });
@@ -123,20 +122,6 @@ class FilesController {
     }
 
     res.status(200).json(document);
-  }
-
-  /**
-  * @param {express.Request} req
-  * @param {express.Response} res
-  */
-  static async getIndex(req, res) {
-    const user = await Utils.getLoggedInUser(req);
-    if (!user) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
-
-    res.json();
   }
 }
 
