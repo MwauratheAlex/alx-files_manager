@@ -55,12 +55,14 @@ class FilesController {
     }
 
     const newFile = {
-      userId: user._id.toString(),
+      userId: user._id,
       name,
       type,
       isPublic: Boolean(isPublic),
-      parentId: parentId || 0,
+      parentId: 0,
     };
+
+    if (parentId) newFile.parentId = new ObjectId(String(parentId));
 
     let insertedFile;
     if (type === 'folder') {
@@ -97,7 +99,7 @@ class FilesController {
 
     newFile.id = insertedFile.insertedId.toString();
 
-    res.status(201).json(newFile);
+    res.status(201).json({});
   }
 }
 
