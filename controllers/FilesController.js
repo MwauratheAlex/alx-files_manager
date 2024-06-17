@@ -99,7 +99,7 @@ class FilesController {
 
     newFile.id = insertedFile.insertedId.toString();
 
-    res.status(201).json({});
+    res.status(201).json(newFile);
   }
 }
 
