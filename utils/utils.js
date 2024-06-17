@@ -23,6 +23,20 @@ class Utils {
 
     return user;
   }
+
+  /**
+   * Fetch document with id from db
+  * @param {String} id
+  */
+  static async getDocumentById(id) {
+    if (!id) return null;
+
+    const document = await dbClient.db.collection('files').findOne({
+      _id: new ObjectId(String(id)),
+    });
+
+    return document;
+  }
 }
 
 export default Utils;
