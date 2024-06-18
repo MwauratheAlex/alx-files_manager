@@ -120,14 +120,10 @@ class FilesController {
       return;
     }
 
-    res.status(200).json({
-      id,
-      userId: user._id.toString(),
-      name: document.name,
-      type: document.type,
-      isPublic: document.isPublic,
-      parentId: document.parentId.toString(),
-    });
+    delete document._id;
+    document.id = id;
+
+    res.status(200).json(document);
   }
 
   /**
@@ -177,6 +173,64 @@ class FilesController {
     ]).toArray();
 
     res.status(200).json(documents);
+  }
+
+  /**
+  * @param {express.Request} req
+  * @param {express.Response} res
+  */
+  static async putPublish(req, res) {
+    const user = await Utils.getLoggedInUser(req);
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { id } = req.params;
+    const document = await Utils.getUserDocumentById(user._id.toString, id);
+    if (!document) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+
+    await dbClient.db.collection('files').updateOne(
+      { _id: document._id }, { isPublic: true },
+    );
+
+    document.id = document._id;
+    delete document._id;
+    document.isPublic = true;
+
+    res.status(200).json(document);
+  }
+
+  /**
+  * @param {express.Request} req
+  * @param {express.Response} res
+  */
+  static async putUnpublish(req, res) {
+    const user = await Utils.getLoggedInUser(req);
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { id } = req.params;
+    const document = await Utils.getUserDocumentById(user._id.toString, id);
+    if (!document) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+
+    await dbClient.db.collection('files').updateOne(
+      { _id: document._id }, { isPublic: false },
+    );
+
+    document.id = document._id;
+    delete document._id;
+    document.isPublic = false;
+
+    res.status(200).json(document);
   }
 }
 
