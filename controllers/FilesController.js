@@ -124,7 +124,7 @@ class FilesController {
     delete document._id;
     document.id = id;
 
-    res.json(document);
+    res.status(200).json(document);
   }
 
   /**
