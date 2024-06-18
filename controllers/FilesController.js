@@ -187,14 +187,14 @@ class FilesController {
     }
 
     const { id } = req.params;
-    const document = await Utils.getUserDocumentById(user._id.toString, id);
+    const document = await Utils.getUserDocumentById(user._id.toString(), id);
     if (!document) {
       res.status(404).json({ error: 'Not found' });
       return;
     }
 
     await dbClient.db.collection('files').updateOne(
-      { _id: document._id }, { isPublic: true },
+      { _id: document._id }, { $set: { isPublic: true } },
     );
 
     document.id = document._id;
@@ -216,14 +216,14 @@ class FilesController {
     }
 
     const { id } = req.params;
-    const document = await Utils.getUserDocumentById(user._id.toString, id);
+    const document = await Utils.getUserDocumentById(user._id.toString(), id);
     if (!document) {
       res.status(404).json({ error: 'Not found' });
       return;
     }
 
     await dbClient.db.collection('files').updateOne(
-      { _id: document._id }, { isPublic: false },
+      { _id: document._id }, { $set: { isPublic: false } },
     );
 
     document.id = document._id;

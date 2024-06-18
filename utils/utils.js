@@ -14,7 +14,7 @@ class Utils {
     if (!token) return null;
 
     const userId = await redisClient.get(`auth_${token}`);
-    if (!userId) return null;
+    if (!userId || !ObjectId.isValid(userId)) return null;
 
     const user = await dbClient
       .db.collection('users')
@@ -31,6 +31,10 @@ class Utils {
   */
   static async getUserDocumentById(userId, documentId) {
     if (!(documentId && userId)) return null;
+
+    if (!(ObjectId.isValid(userId) && ObjectId.isValid(documentId))) {
+      return null;
+    }
 
     const document = await dbClient.db.collection('files').findOne({
       _id: new ObjectId(String(documentId)),
