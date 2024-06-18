@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb';
 import { contentType } from 'mime-types';
 import dbClient from '../utils/db';
 import Utils from '../utils/utils';
+import fileQueue from '../worker';
 
 // eslint-disable-next-line no-unused-vars
 const express = require('express');
@@ -95,6 +96,11 @@ class FilesController {
       ...newFile,
       localPath: `${folderPath}/${filePath}`,
     });
+
+    // generate thumbnails
+    if (insertedFile.type === 'image') {
+      fileQueue.add({ fileId: user._id.toString(), userId: insertedFile.insertedId.toString() });
+    }
 
     delete newFile._id;
 
@@ -240,6 +246,7 @@ class FilesController {
   */
   static async getFile(req, res) {
     const { id } = req.params;
+    const { size } = req.query;
     const document = await Utils.getDocumentById(id);
     if (!document) {
       res.status(404).json({ error: 'Not found' });
@@ -262,7 +269,9 @@ class FilesController {
       return;
     }
 
-    fs.readFile(document.localPath, (err, data) => {
+    const docFilePath = size ? `${document.localPath}_${size}` : document.localPath;
+
+    fs.readFile(docFilePath, (err, data) => {
       if (err) {
         console.log(`Error reading file ${err}`);
         res.status(404).json({ error: 'Not found' });
