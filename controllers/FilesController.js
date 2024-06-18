@@ -150,7 +150,7 @@ class FilesController {
       }
     }
 
-    if (!parentId || parentId === '0') parentId = 0;
+    if (parentId === '0') parentId = 0;
 
     // pagination
     page = parseInt(page, 10);
@@ -158,13 +158,14 @@ class FilesController {
     const pageSize = 20;
     const pageStart = page * pageSize;
 
+    const filter = {
+      userId: user._id,
+    };
+
+    if (parentId || parentId === 0) filter.parentId = parentId;
+
     const documents = await dbClient.db.collection('files').aggregate([
-      {
-        $match: {
-          parentId,
-          userId: user._id,
-        },
-      },
+      { $match: filter },
       { $limit: pageSize },
       { $skip: pageStart },
       { $addFields: { id: '$_id' } },
