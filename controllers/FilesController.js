@@ -1,7 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
-import { log } from 'console';
-import { MIMEType } from 'util';
 import { contentType } from 'mime-types';
 import dbClient from '../utils/db';
 import Utils from '../utils/utils';
