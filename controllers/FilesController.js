@@ -143,8 +143,6 @@ class FilesController {
       parentId = new ObjectId(parentId);
       const parentDocument = await dbClient.db.collection('files').findOne({
         _id: parentId,
-        userId: user._id,
-        type: 'folder',
       });
       if (!parentDocument) {
         res.json([]);
