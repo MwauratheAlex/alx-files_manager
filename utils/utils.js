@@ -14,12 +14,12 @@ class Utils {
     if (!token) return null;
 
     const userId = await redisClient.get(`auth_${token}`);
-    if (!token) return null;
+    if (!userId) return null;
 
     const user = await dbClient
       .db.collection('users')
       .findOne({ _id: new ObjectId(String(userId)) });
-    if (!token) return null;
+    if (!user) return null;
 
     return user;
   }
