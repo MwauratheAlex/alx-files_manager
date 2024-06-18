@@ -133,26 +133,17 @@ class FilesController {
   */
   static async getIndex(req, res) {
     const user = await Utils.getLoggedInUser(req);
-    if (!user) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-    let { page, parentId } = req.query;
+    let { parentId, page } = req.query;
     if (parentId) {
-      parentId = new ObjectId(parentId);
-      const parentDocument = await dbClient.db.collection('files').findOne({
-        _id: parentId,
-      });
-      if (!parentDocument) {
-        res.json([]);
-        return;
-      }
+      parentId = new ObjectId(String(parentId));
+      const parentFile = await dbClient.fileCollection
+        .findOne({ _id: parentId });
+      if (!parentFile) return res.json([]);
     }
 
-    if (parentId === '0') parentId = 0;
-
-    // pagination
+    if (!parentId) parentId = '0';
     page = parseInt(page, 10);
     if (!page) page = 0;
     const pageSize = 20;
@@ -160,20 +151,28 @@ class FilesController {
 
     const filter = {
       userId: user._id,
+      parentId,
     };
-
-    if (parentId || parentId === 0) filter.parentId = parentId;
-
-    const documents = await dbClient.db.collection('files').aggregate([
-      { $match: filter },
-      { $limit: pageSize },
-      { $sort: { _id: -1 } },
-      { $skip: pageStart },
-      { $addFields: { id: '$_id' } },
-      { $project: { _id: 0 } },
-    ]).toArray();
-
-    res.json(documents);
+    const files = await dbClient
+      .fileCollection
+      .aggregate([
+        { $match: filter },
+        { $sort: { _id: -1 } },
+        { $skip: pageStart },
+        { $limit: pageSize },
+        {
+          $project: {
+            _id: 0,
+            id: '$_id',
+            userId: '$userId',
+            name: '$name',
+            type: '$type',
+            isPublic: '$isPublic',
+            parentId: '$parentId',
+          },
+        },
+      ]).toArray();
+    return res.json(files);
   }
 }
 
