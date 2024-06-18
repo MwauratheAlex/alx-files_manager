@@ -26,13 +26,15 @@ class Utils {
 
   /**
    * Fetch document with id from db
-  * @param {String} id
+  * @param {String} userId
+  * @param {String} documentId
   */
-  static async getDocumentById(id) {
-    if (!id) return null;
+  static async getUserDocumentById(userId, documentId) {
+    if (!(documentId && userId)) return null;
 
     const document = await dbClient.db.collection('files').findOne({
-      _id: new ObjectId(String(id)),
+      _id: new ObjectId(String(documentId)),
+      userId: new ObjectId(String(userId)),
     });
 
     return document;

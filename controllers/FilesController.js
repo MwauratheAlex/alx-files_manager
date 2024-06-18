@@ -101,6 +101,80 @@ class FilesController {
 
     res.status(201).json(newFile);
   }
+
+  /**
+  * @param {express.Request} req
+  * @param {express.Response} res
+  */
+  static async getShow(req, res) {
+    const user = await Utils.getLoggedInUser(req);
+
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const { id } = req.params;
+    const document = await Utils.getUserDocumentById(user._id.toString(), id);
+    if (!document) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+
+    delete document._id;
+    document.id = id;
+
+    res.json(document);
+  }
+
+  /**
+  * @param {express.Request} req
+  * @param {express.Response} res
+  */
+  static async getIndex(req, res) {
+    const user = await Utils.getLoggedInUser(req);
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    let { page, parentId } = req.query;
+    if (parentId && parentId !== '0') {
+      parentId = new ObjectId(parentId);
+      const parentDocument = await dbClient.db.collection('files').findOne({
+        _id: parentId,
+        userId: user._id,
+        type: 'folder',
+      });
+      if (!parentDocument) {
+        res.json([]);
+        return;
+      }
+    }
+
+    if (!parentId || parentId === '0') parentId = 0;
+
+    // pagination
+    page = parseInt(page, 10);
+    if (!page) page = 0;
+    const pageSize = 20;
+    const pageStart = page * pageSize;
+
+    const documents = await dbClient.db.collection('files').aggregate([
+      {
+        $match: {
+          parentId,
+          userId: user._id,
+        },
+      },
+      { $limit: pageSize },
+      { $skip: pageStart },
+      { $addFields: { id: '$_id' } },
+      { $project: { _id: 0 } },
+    ]).toArray();
+
+    res.json(documents);
+  }
 }
 
 export default FilesController;
