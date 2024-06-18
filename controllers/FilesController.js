@@ -139,7 +139,7 @@ class FilesController {
     }
 
     let { page, parentId } = req.query;
-    if (parentId && parentId !== '0') {
+    if (parentId) {
       parentId = new ObjectId(parentId);
       const parentDocument = await dbClient.db.collection('files').findOne({
         _id: parentId,
@@ -167,6 +167,7 @@ class FilesController {
     const documents = await dbClient.db.collection('files').aggregate([
       { $match: filter },
       { $limit: pageSize },
+      { $sort: { _id: -1 } },
       { $skip: pageStart },
       { $addFields: { id: '$_id' } },
       { $project: { _id: 0 } },
