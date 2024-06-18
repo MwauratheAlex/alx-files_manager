@@ -1,10 +1,14 @@
+import { ObjectId } from 'mongodb';
+import dbClient from './utils/db';
 import Utils from './utils/utils';
 
 const Queue = require('bull');
 const imageThubnail = require('image-thumbnail');
 const fs = require('fs');
 
-const fileQueue = new Queue('fileQueue');
+export const fileQueue = new Queue('fileQueue');
+
+export const userQueue = new Queue('userQueue');
 
 async function generateThumbnails(filepath, filesize) {
   console.log(`Generating thumbnail: ${filepath}_${filesize}`);
@@ -40,4 +44,15 @@ fileQueue.process(async (job, done) => {
   done();
 });
 
-export default fileQueue;
+userQueue.process(async (job, done) => {
+  const { userId } = job.data;
+  if (!userId) throw new Error('Missing userId');
+
+  const user = await dbClient.db.collection('users').findOne({
+    _id: new ObjectId(String(userId)),
+  });
+  if (!user) throw new Error('User not found');
+
+  console.log(`Welcome ${user.email}`);
+  done();
+});

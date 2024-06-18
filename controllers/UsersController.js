@@ -1,4 +1,5 @@
 import dbClient from '../utils/db';
+import { userQueue } from '../worker';
 
 const sha1 = require('sha1');
 
@@ -33,6 +34,9 @@ class UsersController {
       email,
       password: hashedPassword,
     });
+
+    // send email
+    userQueue.add({ userId: newUser.insertedId.toString() });
 
     res.status(201).json({
       id: newUser.insertedId.toString(),
