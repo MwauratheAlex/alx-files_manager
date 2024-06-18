@@ -87,7 +87,7 @@ class FilesController {
 
     fs.writeFile(
       `${folderPath}/${filePath}`,
-      Buffer.from(data, 'base64').toString(), (err) => {
+      Buffer.from(data, 'base64'), 'utf8', (err) => {
         if (err) console.log(`error writing file: ${err}`);
       },
     );
@@ -98,7 +98,7 @@ class FilesController {
     });
 
     // generate thumbnails
-    if (insertedFile.type === 'image') {
+    if (newFile.type === 'image') {
       fileQueue.add({ fileId: user._id.toString(), userId: insertedFile.insertedId.toString() });
     }
 

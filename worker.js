@@ -7,6 +7,7 @@ const fs = require('fs');
 const fileQueue = new Queue('fileQueue');
 
 async function generateThumbnails(filepath, filesize) {
+  console.log(`Generating thumbnail: ${filepath}_${filesize}`);
   const imageBuffer = await imageThubnail(filepath, { width: filesize });
   return fs.writeFile(`${filepath}_${filesize}`, imageBuffer, (err) => {
     if (err) throw err;
