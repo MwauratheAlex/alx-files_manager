@@ -108,7 +108,6 @@ class FilesController {
   */
   static async getShow(req, res) {
     const user = await Utils.getLoggedInUser(req);
-
     if (!user) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
@@ -121,10 +120,14 @@ class FilesController {
       return;
     }
 
-    delete document._id;
-    document.id = id;
-
-    res.status(200).json(document);
+    res.status(200).json({
+      id,
+      userId: user._id.toString(),
+      name: document.name,
+      type: document.type,
+      isPublic: document.isPublic,
+      parentId: document.parentId.toString(),
+    });
   }
 
   /**
