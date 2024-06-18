@@ -143,7 +143,7 @@ class FilesController {
       if (!parentFile) return res.json([]);
     }
 
-    if (!parentId) parentId = '0';
+    if (!parentId) parentId = 0;
     page = parseInt(page, 10);
     if (!page) page = 0;
     const pageSize = 20;
@@ -154,7 +154,7 @@ class FilesController {
       parentId,
     };
     const files = await dbClient
-      .fileCollection
+      .db.collection('files')
       .aggregate([
         { $match: filter },
         { $sort: { _id: -1 } },
