@@ -1,5 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
+import { log } from 'console';
+import { MIMEType } from 'util';
+import { contentType } from 'mime-types';
 import dbClient from '../utils/db';
 import Utils from '../utils/utils';
 
@@ -231,6 +234,45 @@ class FilesController {
     document.isPublic = false;
 
     res.status(200).json(document);
+  }
+
+  /**
+  * @param {express.Request} req
+  * @param {express.Response} res
+  */
+  static async getFile(req, res) {
+    const { id } = req.params;
+    const document = await Utils.getDocumentById(id);
+    if (!document) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+    if (!document.isPublic) {
+      const user = await Utils.getLoggedInUser(req);
+      if (!user || document.userId.toString() !== user._id.toString()) {
+        res.status(404).json({ error: 'Not found' });
+        return;
+      }
+    }
+    if (document.type === 'folder') {
+      res.status(400).json({ error: "A folder doesn't have content" });
+      return;
+    }
+
+    if (!fs.existsSync(document.localPath)) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+
+    fs.readFile(document.localPath, (err, data) => {
+      if (err) {
+        console.log(`Error reading file ${err}`);
+        res.status(404).json({ error: 'Not found' });
+      } else {
+        res.setHeader('Content-type', contentType(document.name) || 'text/plain; charset=utf-8');
+        res.status(200).send(data);
+      }
+    });
   }
 }
 

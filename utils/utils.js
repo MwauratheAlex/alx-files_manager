@@ -43,6 +43,20 @@ class Utils {
 
     return document;
   }
+
+  static async getDocumentById(documentId) {
+    if (!(documentId)) return null;
+
+    if (!(ObjectId.isValid(documentId))) {
+      return null;
+    }
+
+    const document = await dbClient.db.collection('files').findOne({
+      _id: new ObjectId(String(documentId)),
+    });
+
+    return document;
+  }
 }
 
 export default Utils;
